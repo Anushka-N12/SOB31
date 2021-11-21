@@ -19,8 +19,12 @@ newitems = [['samsung galaxy s20 smart phone', 2999, 100, 'smart', 2],['max tshi
 sellers here usually have one piece of the item they no longer need'''
 useditems = [['lg 300l refrigerator', 1300, 3],['homecentre 3 seat sofa', 500, 1],['free mulan movie ticket', 0, 0],['ray ban aviator black sunglasses', 50, 0.5],['honda accord car', 30000, 6],['sky land treadmill', 500, 2],['wooden coffee table', 100, 1],['small marble vase', 60, 2.5],['christmas tree', 30, 1],['sony home theatre', 250, 3],['hoover dishwasher', 600, 2],['acoustic guitar', 350, 1],['baby stroller', 50, 3],['2 tennis rackets', 20, 2]]
 
+#Added bank details ie. name, balance and pin needed to access it
+bank_data = [['Sania Mulani',50000,9121],['Min Yoongi',1000000,1993],['Troye Sivan',250000,1595],['Jalal Fernandes',1,1234],['Kaneki Ken',999,7753],['Nico Collins',250,2957],['Kim Namjoon',270000,3750],['Mohammed Ali',15000,6666],['Yang Yu Teng',5000,7761],['Alec Benjamin',26000,7721]]
 #functions that are called when user chooses respective option
-def additem(category, newitems, useditems):   #takes inputs of item details and adds it to respective category
+def additem(category):   #takes inputs of item details and adds it to respective category
+    global newitems
+    global useditems
     itemname = input("Enter item name: ")     
     itemprice = int(input("Enter item price: "))
     found = 0                   #to check whether item with that name already exists
@@ -49,7 +53,9 @@ def additem(category, newitems, useditems):   #takes inputs of item details and 
             useditems.append(newlist)
             return "Successfully added"
 
-def addstock(itemname, newitems, useditems): #adds new units to existing stock
+def addstock(itemname): #adds new units to existing stock
+    global newitems
+    global useditems
     found = 0  # to check if itemname is in list or not
     for i in newitems:
         if itemname == i[0]:
@@ -63,7 +69,9 @@ def addstock(itemname, newitems, useditems): #adds new units to existing stock
                 return "Wrong password"
     if found == 0:
         return "Item not found"
-def deleteitem(category, newitems, useditems):   #deletes item
+def deleteitem(category):   #deletes item
+    global newitems
+    global useditems
     itemname = input("Enter item name: ")
     found = 0           # to check if itemname is in list or not
     if category == 'new':
@@ -84,7 +92,9 @@ def deleteitem(category, newitems, useditems):   #deletes item
                 return "Item deleted"
     if found == 0:
         return "Item not found"
-def showsales(itemname, newitems, useditems):   #returns list with no. of units sold and earnings
+def showsales(itemname):   #returns list with no. of units sold and earnings
+    global newitems
+    global useditems
     found = 0  # to check if itemname is in list or not
     for i in newitems:
         if itemname == i[0]:
@@ -97,7 +107,9 @@ def showsales(itemname, newitems, useditems):   #returns list with no. of units 
                 return "Wrong password"
     if found == 0:
         return "Item not found"
-def search(keyword, category, newitems, useditems):  #searches for item with keyword in respective category
+def search(keyword, category):  #searches for item with keyword in respective category
+    global newitems
+    global useditems
     listforreturn = []     #There may be multiple items to return, so we use a list
     if category == 'new':
         for i in newitems:
@@ -109,22 +121,44 @@ def search(keyword, category, newitems, useditems):  #searches for item with key
                 listforreturn.append(i)
     return listforreturn
 
-def buyitem(itemname, category, newitems, useditems): #eliminates bought units from stock
-    if category == 'new':
-        for i in newitems:
-            if itemname == i[0]:
-                units = int(input("How many units would you like to buy? "))
-                if i[2] >= units:
-                    i[2] = i[2] - units
-                    i[4] = i[4] + units
-                    return "Purchase successful"
-                else:
-                    return "Stock not available"
-    elif category == 'used':
-        for i in useditems:
-            if itemname == i[0]:
-                    return "Purchase successful"
-                    useditems.remove(i)
+def buyitem(itemname, category): #eliminates bought units from stock if bank balance is sufficient
+    global newitems
+    global useditems
+    global bank_data
+    name = input("Full name: ") #to search for account in bank
+    found = 0
+    for i in bank_data: #will first check if bank details are present
+        if name.title() == i[0]:
+            found = 1
+            pin = int(input("Enter PIN: "))
+            if pin == i[2]:
+                if category == 'new':
+                    for j in newitems:
+                        if itemname == j[0]:
+                            units = int(input("How many units would you like to buy? "))
+                            if j[2] >= units:
+                                if i[1] - j[1]*units >0:
+                                    i[1] = i[1] - j[1]*units #deducts spent amount from balance
+                                    j[2] = j[2] - units
+                                    j[4] = j[4] + units
+                                    return "Purchase successful"
+                                else:
+                                    return "Insufficient Balance"
+                            else:
+                                return "Stock not available"
+                elif category == 'used':
+                    for j in useditems:
+                        if itemname == j[0]:
+                            if i[1] - j[1] >0:
+                                i[1] = i[1] - j[1]
+                                return "Purchase successful"
+                                useditems.remove(j)
+                            else:
+                                return "Insufficient Balance"
+            else:
+                return "Wrong PIN"
+    if found == 0:
+        return "Name not found in bank data"        
 
 choice = 0            #main program starts here
 while choice != 3:
@@ -154,21 +188,21 @@ while choice != 3:
             print("Invalid category")
             continue
         if sellerchoice == 1:
-            print(additem(category.lower(), newitems, useditems))
+            print(additem(category.lower()))
         elif sellerchoice == 2:
             if category.lower() == 'used':
                 print("This option is not available for used category")
                 continue
             itemname = input("Enter item name: ")
-            print(addstock(itemname.lower(), newitems, useditems))
+            print(addstock(itemname.lower()))
         elif sellerchoice == 3:
-            print(deleteitem(category.lower(), newitems, useditems))
+            print(deleteitem(category.lower()))
         elif sellerchoice == 4:
             if category.lower() == 'used':
                 print("This option is not available for used category")
                 continue
             itemname = input("Enter item name: ")
-            l = showsales(itemname.lower(), newitems, useditems) #returns units sold and earnings
+            l = showsales(itemname.lower()) #returns units sold and earnings
             print("No. of units sold: ", l[0])
             print("Total amount earned: ", l[1])
             
@@ -180,7 +214,7 @@ while choice != 3:
         else:
             print("Invalid category")
             continue
-        listofitems = search(keyword.lower(), category.lower(), newitems, useditems) #Will get back a list of items from that category having the keyword
+        listofitems = search(keyword.lower(), category.lower()) #Will get back a list of items from that category having the keyword
         if len(listofitems) == 0:
             print("Not found")
         else:
@@ -201,6 +235,6 @@ while choice != 3:
             confirmation = input("Is your desired product above? (y/n): ") #Confirming if buyer wants any of the above displayed products  
             if confirmation in ['y','Y']:
                 itemindex = int(input("Please type index of desired product: ")) #Index asked to help identify desired product to change stock
-                print(buyitem(listofitems[itemindex][0], category.lower(), newitems, useditems))
+                print(buyitem(listofitems[itemindex][0], category.lower()))
     elif choice not in [1,2,3]:
         print("Invalid option")
